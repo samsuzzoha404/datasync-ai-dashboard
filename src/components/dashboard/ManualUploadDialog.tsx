@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Upload, FileSpreadsheet, CheckCircle2, Loader2, X } from "lucide-react";
+import { Upload, FileSpreadsheet, CheckCircle2, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,8 +12,30 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useMockData } from "@/contexts/MockDataContext";
 
 type UploadState = "idle" | "uploading" | "processing" | "complete";
+
+const banks = ["CIMB", "Maybank", "RHB"];
+const names = [
+  "Ahmad Bin Ismail",
+  "Nur Aisyah Binti Rahman",
+  "Lim Wei Jie",
+  "Krishnan A/L Muthu",
+  "Fatimah Binti Osman",
+];
+
+function generateRandomRows(fileName: string, bank: string, count: number) {
+  return Array.from({ length: count }, (_, i) => ({
+    sourceFile: fileName,
+    bank,
+    clientName: names[Math.floor(Math.random() * names.length)],
+    accountNo: Math.floor(1000000000 + Math.random() * 9000000000).toString(),
+    dueAmount: Math.floor(1000 + Math.random() * 50000) + Math.random(),
+    dueDate: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    status: Math.random() > 0.1 ? 'valid' : 'invalid' as 'valid' | 'invalid',
+  }));
+}
 
 export function ManualUploadDialog() {
   const [open, setOpen] = useState(false);
@@ -21,6 +43,8 @@ export function ManualUploadDialog() {
   const [progress, setProgress] = useState(0);
   const [dragActive, setDragActive] = useState(false);
   const [fileName, setFileName] = useState("");
+
+  const { addActivity, addStandardizedRows } = useMockData();
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -53,18 +77,28 @@ export function ManualUploadDialog() {
 
     setState("complete");
 
-    toast({
-      title: "File processed successfully",
-      description: `${file.name} - 456 rows standardized and ready for export.`,
+    // Generate random data
+    const randomBank = banks[Math.floor(Math.random() * banks.length)];
+    const rowCount = Math.floor(200 + Math.random() * 800);
+    
+    // Add to activity log
+    addActivity({
+      fileName: file.name,
+      source: "upload",
+      bank: randomBank,
+      status: "completed",
+      rows: rowCount,
+      timestamp: "Just now",
     });
 
-    // Reset after delay
-    setTimeout(() => {
-      setOpen(false);
-      setState("idle");
-      setProgress(0);
-      setFileName("");
-    }, 2000);
+    // Add standardized rows
+    const newRows = generateRandomRows(file.name, randomBank, Math.min(rowCount, 5));
+    addStandardizedRows(newRows);
+
+    toast({
+      title: "File processed successfully",
+      description: `${file.name} - ${rowCount} rows standardized and ready for export.`,
+    });
   };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -75,7 +109,7 @@ export function ManualUploadDialog() {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       simulateUpload(e.dataTransfer.files[0]);
     }
-  }, []);
+  }, [addActivity, addStandardizedRows]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -95,9 +129,10 @@ export function ManualUploadDialog() {
       if (!newOpen) resetDialog();
     }}>
       <DialogTrigger asChild>
-        <Button className="gradient-primary gap-2 shadow-md hover:shadow-lg transition-shadow">
+        <Button className="gap-2 shadow-md hover:shadow-lg transition-shadow">
           <Upload className="h-4 w-4" />
-          Upload Manual File
+          <span className="hidden sm:inline">Upload Manual File</span>
+          <span className="sm:hidden">Upload</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
@@ -164,13 +199,19 @@ export function ManualUploadDialog() {
 
         {state === "complete" && (
           <div className="flex flex-col items-center py-8">
-            <div className="rounded-full bg-success/10 p-4 mb-4">
-              <CheckCircle2 className="h-8 w-8 text-success" />
+            <div className="relative">
+              <div className="absolute inset-0 bg-success/20 rounded-full animate-ping" />
+              <div className="relative rounded-full bg-success/10 p-4 mb-4">
+                <CheckCircle2 className="h-8 w-8 text-success" />
+              </div>
             </div>
-            <p className="text-sm font-medium">Processing Complete!</p>
+            <p className="text-sm font-medium mt-4">Processing Complete!</p>
             <p className="text-xs text-muted-foreground mt-1">
-              456 rows standardized successfully
+              Data standardized and added to inspector
             </p>
+            <Button onClick={() => setOpen(false)} className="mt-4">
+              Done
+            </Button>
           </div>
         )}
       </DialogContent>

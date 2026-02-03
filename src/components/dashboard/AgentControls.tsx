@@ -1,26 +1,20 @@
-import { useState } from "react";
 import { Mail, Server, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-
-interface AgentState {
-  email: boolean;
-  sftp: boolean;
-}
+import { useMockData } from "@/contexts/MockDataContext";
+import { useState } from "react";
 
 export function AgentControls() {
-  const [agents, setAgents] = useState<AgentState>({ email: true, sftp: true });
+  const { agents, toggleAgent } = useMockData();
   const [loading, setLoading] = useState<string | null>(null);
 
-  const toggleAgent = async (agent: keyof AgentState) => {
+  const handleToggleAgent = async (agent: 'email' | 'sftp') => {
     setLoading(agent);
     
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await toggleAgent(agent);
     
-    setAgents((prev) => ({ ...prev, [agent]: !prev[agent] }));
     setLoading(null);
 
     const agentName = agent === "email" ? "Email Listener" : "SFTP Connector";
@@ -62,7 +56,7 @@ export function AgentControls() {
           </div>
           <div className="flex items-center gap-3">
             {agents.email && (
-              <Badge variant="outline" className="bg-success/10 text-success border-success/30">
+              <Badge variant="outline" className="bg-success/10 text-success border-success/30 hidden sm:flex">
                 Running
               </Badge>
             )}
@@ -71,7 +65,7 @@ export function AgentControls() {
             ) : (
               <Switch
                 checked={agents.email}
-                onCheckedChange={() => toggleAgent("email")}
+                onCheckedChange={() => handleToggleAgent("email")}
               />
             )}
           </div>
@@ -99,7 +93,7 @@ export function AgentControls() {
           </div>
           <div className="flex items-center gap-3">
             {agents.sftp && (
-              <Badge variant="outline" className="bg-success/10 text-success border-success/30">
+              <Badge variant="outline" className="bg-success/10 text-success border-success/30 hidden sm:flex">
                 Running
               </Badge>
             )}
@@ -108,7 +102,7 @@ export function AgentControls() {
             ) : (
               <Switch
                 checked={agents.sftp}
-                onCheckedChange={() => toggleAgent("sftp")}
+                onCheckedChange={() => handleToggleAgent("sftp")}
               />
             )}
           </div>

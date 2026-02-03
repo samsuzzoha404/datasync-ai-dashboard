@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, Server, KeyRound, Plus, Trash2, CheckCircle2, XCircle, Settings2 } from "lucide-react";
+import { Mail, Server, KeyRound, Plus, Trash2, CheckCircle2, XCircle, Settings2, Eye, EyeOff, Loader2, Wifi } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,8 +21,11 @@ export default function Connections() {
     host: "imap.gmail.com",
     port: "993",
     email: "datasync@company.my",
-    password: "",
+    password: "myapppassword123",
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [testingConnection, setTestingConnection] = useState<string | null>(null);
+  const [connectionSuccess, setConnectionSuccess] = useState<string | null>(null);
 
   const handleSaveEmail = () => {
     toast({
@@ -31,28 +34,47 @@ export default function Connections() {
     });
   };
 
+  const handleTestConnection = async (serverId: string) => {
+    setTestingConnection(serverId);
+    setConnectionSuccess(null);
+    
+    // Simulate connection test
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    
+    setTestingConnection(null);
+    setConnectionSuccess(serverId);
+    
+    toast({
+      title: "Connection successful",
+      description: "SFTP server is reachable and authenticated.",
+    });
+    
+    // Clear success after 3 seconds
+    setTimeout(() => setConnectionSuccess(null), 3000);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Connection Manager</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Connection Manager</h1>
+        <p className="text-sm text-muted-foreground">
           Configure your data sources and decryption rules.
         </p>
       </div>
 
       <Tabs defaultValue="email" className="space-y-6">
-        <TabsList className="bg-muted/50">
-          <TabsTrigger value="email" className="gap-2">
+        <TabsList className="bg-muted/50 w-full sm:w-auto flex-wrap h-auto p-1">
+          <TabsTrigger value="email" className="gap-2 text-xs sm:text-sm">
             <Mail className="h-4 w-4" />
-            Email
+            <span className="hidden sm:inline">Email</span>
           </TabsTrigger>
-          <TabsTrigger value="sftp" className="gap-2">
+          <TabsTrigger value="sftp" className="gap-2 text-xs sm:text-sm">
             <Server className="h-4 w-4" />
-            SFTP Servers
+            <span className="hidden sm:inline">SFTP Servers</span>
           </TabsTrigger>
-          <TabsTrigger value="decrypt" className="gap-2">
+          <TabsTrigger value="decrypt" className="gap-2 text-xs sm:text-sm">
             <KeyRound className="h-4 w-4" />
-            Decryption
+            <span className="hidden sm:inline">Decryption</span>
           </TabsTrigger>
         </TabsList>
 
@@ -74,6 +96,7 @@ export default function Connections() {
                     value={emailConfig.host}
                     onChange={(e) => setEmailConfig({ ...emailConfig, host: e.target.value })}
                     placeholder="imap.gmail.com"
+                    className="font-mono text-sm"
                   />
                 </div>
                 <div className="space-y-2">
@@ -83,6 +106,7 @@ export default function Connections() {
                     value={emailConfig.port}
                     onChange={(e) => setEmailConfig({ ...emailConfig, port: e.target.value })}
                     placeholder="993"
+                    className="font-mono text-sm"
                   />
                 </div>
                 <div className="space-y-2">
@@ -93,17 +117,34 @@ export default function Connections() {
                     value={emailConfig.email}
                     onChange={(e) => setEmailConfig({ ...emailConfig, email: e.target.value })}
                     placeholder="your@email.com"
+                    className="font-mono text-sm"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">App Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={emailConfig.password}
-                    onChange={(e) => setEmailConfig({ ...emailConfig, password: e.target.value })}
-                    placeholder="••••••••••••••••"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={emailConfig.password}
+                      onChange={(e) => setEmailConfig({ ...emailConfig, password: e.target.value })}
+                      placeholder="••••••••••••••••"
+                      className="pr-10 font-mono text-sm"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
               <div className="flex justify-end">
@@ -116,14 +157,14 @@ export default function Connections() {
         {/* SFTP Servers */}
         <TabsContent value="sftp">
           <Card className="shadow-card">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <CardTitle className="text-lg">SFTP Servers</CardTitle>
                 <CardDescription>
                   Manage your SFTP connections to bank servers.
                 </CardDescription>
               </div>
-              <Button size="sm" className="gap-2">
+              <Button size="sm" className="gap-2 w-full sm:w-auto">
                 <Plus className="h-4 w-4" />
                 Add Server
               </Button>
@@ -133,14 +174,14 @@ export default function Connections() {
                 {sftpServers.map((server) => (
                   <div
                     key={server.id}
-                    className="flex items-center justify-between rounded-lg border p-4"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg border p-4 gap-4"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="rounded-lg bg-secondary p-2">
+                      <div className="rounded-lg bg-secondary p-2 flex-shrink-0">
                         <Server className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-sm font-medium">{server.bank}</p>
                           <Badge
                             variant="outline"
@@ -158,12 +199,30 @@ export default function Connections() {
                             {server.status}
                           </Badge>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5 font-mono">
                           {server.host}:{server.port} • Last sync: {server.lastSync}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 ml-auto sm:ml-0">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="gap-1.5"
+                        disabled={testingConnection === server.id}
+                        onClick={() => handleTestConnection(server.id)}
+                      >
+                        {testingConnection === server.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : connectionSuccess === server.id ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                        ) : (
+                          <Wifi className="h-3.5 w-3.5" />
+                        )}
+                        <span className="hidden sm:inline">
+                          {connectionSuccess === server.id ? "Success" : "Test"}
+                        </span>
+                      </Button>
                       <Button variant="ghost" size="icon">
                         <Settings2 className="h-4 w-4" />
                       </Button>
@@ -181,14 +240,14 @@ export default function Connections() {
         {/* Decryption Patterns */}
         <TabsContent value="decrypt">
           <Card className="shadow-card">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <CardTitle className="text-lg">Decryption Logic</CardTitle>
                 <CardDescription>
                   Define password patterns for encrypted ZIP files from each bank.
                 </CardDescription>
               </div>
-              <Button size="sm" className="gap-2">
+              <Button size="sm" className="gap-2 w-full sm:w-auto">
                 <Plus className="h-4 w-4" />
                 Add Pattern
               </Button>
@@ -198,14 +257,14 @@ export default function Connections() {
                 {decryptionPatterns.map((pattern) => (
                   <div
                     key={pattern.id}
-                    className="flex items-center justify-between rounded-lg border p-4"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg border p-4 gap-4"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="rounded-lg bg-secondary p-2">
+                      <div className="rounded-lg bg-secondary p-2 flex-shrink-0">
                         <KeyRound className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-sm font-medium">{pattern.bank}</p>
                           <Badge
                             variant="outline"
@@ -226,7 +285,7 @@ export default function Connections() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 ml-auto sm:ml-0">
                       <Button variant="ghost" size="icon">
                         <Settings2 className="h-4 w-4" />
                       </Button>

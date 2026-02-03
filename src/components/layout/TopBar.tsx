@@ -11,18 +11,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useMockData } from "@/contexts/MockDataContext";
 
 interface TopBarProps {
   onToggleSidebar: () => void;
+  showMobileMenu?: boolean;
 }
 
-export function TopBar({ onToggleSidebar }: TopBarProps) {
+export function TopBar({ onToggleSidebar, showMobileMenu = false }: TopBarProps) {
+  const { agents } = useMockData();
+  const allRunning = agents.email && agents.sftp;
+
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-card/80 backdrop-blur-sm px-6">
+    <header className="sticky top-0 z-30 flex h-14 sm:h-16 items-center gap-2 sm:gap-4 border-b bg-card/80 backdrop-blur-sm px-4 sm:px-6">
       <Button
         variant="ghost"
         size="icon"
-        className="lg:hidden"
+        className={showMobileMenu ? "" : "hidden lg:flex"}
         onClick={onToggleSidebar}
       >
         <Menu className="h-5 w-5" />
@@ -30,15 +35,21 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
 
       {/* Global Status */}
       <div className="hidden md:flex items-center gap-4">
-        <Badge variant="outline" className="bg-success/10 text-success border-success/30 gap-1.5">
+        <Badge 
+          variant="outline" 
+          className={allRunning 
+            ? "bg-success/10 text-success border-success/30 gap-1.5" 
+            : "bg-warning/10 text-warning border-warning/30 gap-1.5"
+          }
+        >
           <CheckCircle2 className="h-3 w-3" />
-          All Systems Operational
+          {allRunning ? "All Systems Operational" : "Partial Systems Running"}
         </Badge>
       </div>
 
       {/* Search */}
       <div className="flex-1 max-w-md ml-auto">
-        <div className="relative">
+        <div className="relative hidden sm:block">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search files, clients..."
@@ -48,7 +59,11 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
+        <Button variant="ghost" size="icon" className="sm:hidden">
+          <Search className="h-5 w-5" />
+        </Button>
+        
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">
