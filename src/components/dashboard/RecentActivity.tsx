@@ -1,6 +1,8 @@
-import { Mail, Server, Upload, CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { Mail, Server, Upload, CheckCircle2, Loader2, XCircle, ExternalLink, Inbox } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useMockData } from "@/contexts/MockDataContext";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +39,17 @@ export function RecentActivity() {
         <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
       </CardHeader>
       <CardContent>
+        {activities.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="rounded-full bg-muted p-4 mb-4">
+              <Inbox className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <p className="text-sm font-medium">Waiting for incoming files</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Files from Email or SFTP will appear here automatically.
+            </p>
+          </div>
+        ) : (
         <div className="space-y-3">
           {activities.slice(0, 5).map((activity) => {
             const SourceIcon = sourceIcons[activity.source];
@@ -71,11 +84,27 @@ export function RecentActivity() {
                     />
                     <span className="hidden sm:inline">{status.label}</span>
                   </Badge>
+                  {activity.status === "completed" && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => window.open("https://agency-portal.com", "_blank")}
+                        >
+                          <ExternalLink className="h-3.5 w-3.5 text-primary" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Open in Agency Portal</TooltipContent>
+                    </Tooltip>
+                  )}
                 </div>
               </div>
             );
           })}
         </div>
+        )}
       </CardContent>
     </Card>
   );

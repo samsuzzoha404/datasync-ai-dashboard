@@ -14,7 +14,7 @@ import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useMockData } from "@/contexts/MockDataContext";
 
-type UploadState = "idle" | "uploading" | "processing" | "complete";
+type UploadState = "idle" | "uploading" | "processing" | "pushing" | "complete";
 
 const banks = ["CIMB", "Maybank", "RHB"];
 const names = [
@@ -60,7 +60,7 @@ export function ManualUploadDialog() {
     setFileName(file.name);
     setState("uploading");
 
-    // Simulate upload progress
+    // Step 1: Uploading (1s)
     for (let i = 0; i <= 100; i += 10) {
       await new Promise((resolve) => setTimeout(resolve, 100));
       setProgress(i);
@@ -69,9 +69,18 @@ export function ManualUploadDialog() {
     setState("processing");
     setProgress(0);
 
-    // Simulate AI processing
+    // Step 2: AI Analyzing Headers (2s)
     for (let i = 0; i <= 100; i += 5) {
-      await new Promise((resolve) => setTimeout(resolve, 80));
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      setProgress(i);
+    }
+
+    setState("pushing");
+    setProgress(0);
+
+    // Step 3: Pushing to Database (1s)
+    for (let i = 0; i <= 100; i += 10) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
       setProgress(i);
     }
 
@@ -181,7 +190,7 @@ export function ManualUploadDialog() {
           </div>
         )}
 
-        {(state === "uploading" || state === "processing") && (
+        {(state === "uploading" || state === "processing" || state === "pushing") && (
           <div className="flex flex-col items-center py-8">
             <div className="rounded-full bg-primary/10 p-4 mb-4">
               <Loader2 className="h-8 w-8 text-primary animate-spin" />
@@ -191,7 +200,7 @@ export function ManualUploadDialog() {
               <span className="text-sm font-medium">{fileName}</span>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
-              {state === "uploading" ? "Uploading..." : "Analyzing Excel Structure..."}
+              {state === "uploading" ? "Uploading..." : state === "processing" ? "AI Analyzing Headers..." : "Pushing to Database..."}
             </p>
             <Progress value={progress} className="w-full max-w-xs" />
           </div>

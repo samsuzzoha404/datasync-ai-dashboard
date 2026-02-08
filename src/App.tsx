@@ -7,7 +7,7 @@ import { MockDataProvider } from "@/contexts/MockDataContext";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import Dashboard from "@/pages/Dashboard";
 import Connections from "@/pages/Connections";
-import DataInspector from "@/pages/DataInspector";
+import ProcessingLogs from "@/pages/ProcessingLogs";
 import Subscription from "@/pages/Subscription";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
@@ -25,7 +25,7 @@ const App = () => (
             <Route element={<DashboardLayout />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/connections" element={<Connections />} />
-              <Route path="/data" element={<DataInspector />} />
+              <Route path="/logs" element={<ProcessingLogs />} />
               <Route path="/subscription" element={<Subscription />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
