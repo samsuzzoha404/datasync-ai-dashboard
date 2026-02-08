@@ -3,7 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Link2,
-  Database,
+  FileText,
   CreditCard,
   Settings,
   ChevronLeft,
@@ -23,7 +23,7 @@ interface AppSidebarProps {
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Connections", href: "/connections", icon: Link2 },
-  { name: "Data Inspector", href: "/data", icon: Database },
+  { name: "Processing Logs", href: "/logs", icon: FileText },
   { name: "Subscription", href: "/subscription", icon: CreditCard },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
