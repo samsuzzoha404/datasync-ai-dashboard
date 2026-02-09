@@ -17,6 +17,8 @@ export function StatsGrid() {
       showChart: true,
       chartData: stats.weeklyTrend,
       chartColor: "hsl(var(--primary))",
+      trend: "↗ 12% vs yesterday",
+      trendPositive: true,
     },
     {
       name: "Rows Standardized",
@@ -60,6 +62,11 @@ export function StatsGrid() {
                 <p className="text-sm font-medium text-muted-foreground">{stat.name}</p>
                 <p className="mt-1 text-2xl font-bold tracking-tight font-mono">{stat.value}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{stat.subValue}</p>
+                {stat.trend && (
+                  <p className={`mt-0.5 text-xs font-medium ${stat.trendPositive ? "text-success" : "text-error"}`}>
+                    {stat.trend}
+                  </p>
+                )}
               </div>
               <div className={`rounded-lg p-2.5 ${stat.bgColor} flex-shrink-0`}>
                 <stat.icon className={`h-5 w-5 ${stat.color}`} />
