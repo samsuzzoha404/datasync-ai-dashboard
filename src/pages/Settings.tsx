@@ -190,9 +190,9 @@ export default function Settings() {
         {/* AI Mapping Rules */}
         <TabsContent value="mapping">
           <Card className="shadow-card">
-            <CardHeader>
-              <div className="flex items-center justify-between flex-wrap gap-3">
-                <div>
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="space-y-1">
                   <CardTitle className="text-lg">Column Mapping Intelligence</CardTitle>
                   <CardDescription>AI-powered field recognition and standardization rules</CardDescription>
                 </div>
@@ -201,68 +201,71 @@ export default function Settings() {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
-              {/* Flow Diagram Header */}
-              <div className="flex items-center justify-between mb-4 pb-3 border-b">
-                <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-full bg-muted-foreground/30" />
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Source Column</span>
-                </div>
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="h-px w-16 bg-gradient-to-r from-muted-foreground/20 via-primary/50 to-muted-foreground/20" />
-                  <span className="text-2xs text-muted-foreground mx-2">AI Mapping</span>
-                  <div className="h-px w-16 bg-gradient-to-r from-muted-foreground/20 via-primary/50 to-muted-foreground/20" />
+            <CardContent className="space-y-6">
+              {/* Flow Legend */}
+              <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-5 py-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-2.5 w-2.5 rounded-full bg-muted-foreground/40" />
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Source Column</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Target Schema</span>
-                  <div className="h-3 w-3 rounded-full bg-primary/50" />
+                  <div className="h-px w-10 bg-muted-foreground/20" />
+                  <MoveRight className="h-3.5 w-3.5 text-primary/60" />
+                  <span className="text-xs text-muted-foreground font-medium">AI Mapping</span>
+                  <MoveRight className="h-3.5 w-3.5 text-primary/60" />
+                  <div className="h-px w-10 bg-muted-foreground/20" />
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Target Schema</span>
+                  <div className="h-2.5 w-2.5 rounded-full bg-primary/60" />
                 </div>
               </div>
 
-              <div className="space-y-3">
+              {/* Mapping Rules List */}
+              <div className="space-y-2.5">
                 {mappings.map((mapping, index) => (
                   <div
                     key={index}
-                    className="group relative flex items-center justify-between rounded-lg border p-4 hover:bg-accent/50 transition-colors overflow-hidden"
+                    className="group relative flex items-center gap-4 rounded-lg border p-4 sm:p-5 hover:bg-accent/40 transition-all duration-150"
                   >
-                    <div className="absolute left-1/4 right-1/4 top-1/2 h-px bg-gradient-to-r from-muted via-primary/30 to-primary/10 -translate-y-1/2 z-0" />
-
-                    <div className="flex items-center gap-4 flex-1 z-10">
-                      <div className="relative">
-                        <div className="absolute -left-2 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-muted-foreground/40" />
-                        <div className="rounded-md bg-muted px-3 py-1.5 font-mono text-sm border border-muted-foreground/20">
-                          {mapping.input}
-                        </div>
-                      </div>
-
-                      <div className="flex-1 flex items-center justify-center gap-2">
-                        <div className="hidden sm:block h-px flex-1 bg-gradient-to-r from-muted-foreground/30 to-primary/50" />
-                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10">
-                          <MoveRight className="h-3 w-3 text-primary" />
-                        </div>
-                        <div className="hidden sm:block h-px flex-1 bg-gradient-to-l from-muted-foreground/30 to-primary/50" />
-                      </div>
-
-                      <div className="relative">
-                        <div className="rounded-md bg-primary/10 text-primary px-3 py-1.5 font-mono text-sm border border-primary/30">
-                          {mapping.output}
-                        </div>
-                        <div className="absolute -right-2 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-primary" />
+                    {/* Source */}
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="h-2 w-2 rounded-full bg-muted-foreground/40 shrink-0" />
+                      <div className="rounded-md bg-muted px-3 py-2 font-mono text-sm border border-border truncate">
+                        {mapping.input}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 ml-4 z-10">
-                      <div className="hidden md:block w-24">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-2xs text-muted-foreground">Confidence</span>
-                          <span className="text-xs font-medium font-mono">{mapping.confidence}%</span>
+                    {/* Arrow */}
+                    <div className="flex items-center gap-1.5 shrink-0 px-1">
+                      <div className="hidden sm:block h-px w-6 bg-gradient-to-r from-muted-foreground/30 to-primary/40" />
+                      <div className="flex items-center justify-center h-7 w-7 rounded-full bg-primary/10 border border-primary/20">
+                        <MoveRight className="h-3.5 w-3.5 text-primary" />
+                      </div>
+                      <div className="hidden sm:block h-px w-6 bg-gradient-to-l from-muted-foreground/30 to-primary/40" />
+                    </div>
+
+                    {/* Target */}
+                    <div className="flex items-center gap-3 min-w-0 flex-1 justify-end">
+                      <div className="rounded-md bg-primary/10 text-primary px-3 py-2 font-mono text-sm border border-primary/25 truncate">
+                        {mapping.output}
+                      </div>
+                      <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
+                    </div>
+
+                    {/* Meta & Actions */}
+                    <div className="flex items-center gap-3 ml-2 shrink-0">
+                      <div className="hidden md:flex flex-col items-end gap-1 w-24">
+                        <div className="flex items-center justify-between w-full">
+                          <span className="text-[10px] text-muted-foreground">Confidence</span>
+                          <span className="text-xs font-semibold font-mono">{mapping.confidence}%</span>
                         </div>
                         <Progress value={mapping.confidence} className="h-1.5" />
                       </div>
                       <Badge
                         variant="outline"
                         className={cn(
-                          "hidden sm:inline-flex",
+                          "hidden sm:inline-flex text-[10px] px-2 py-0.5",
                           mapping.confidence >= 95
                             ? "bg-success/10 text-success border-success/30"
                             : "bg-warning/10 text-warning border-warning/30"
@@ -270,32 +273,39 @@ export default function Settings() {
                       >
                         {mapping.confidence >= 95 ? "High" : "Medium"}
                       </Badge>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => setEditDialog({ open: true, index, input: mapping.input, output: mapping.output })}
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
-                        onClick={() => handleDeleteMapping(index)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+
+                      <Separator orientation="vertical" className="h-6 hidden sm:block" />
+
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => setEditDialog({ open: true, index, input: mapping.input, output: mapping.output })}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteMapping(index)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-6 rounded-lg bg-muted/50 p-4">
-                <p className="text-sm text-muted-foreground">
-                  <strong>How it works:</strong> The AI engine analyzes column headers and data
+              {/* Info Box */}
+              <div className="rounded-lg border border-dashed bg-muted/30 p-5">
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">How it works:</strong> The AI engine analyzes column headers and data
                   patterns from incoming Excel files to automatically map them to your
                   standardized schema. Confidence scores indicate the reliability of each mapping.
+                  You can manually override any rule by clicking the edit icon.
                 </p>
               </div>
             </CardContent>
