@@ -27,7 +27,7 @@ export function TopBar({ onToggleSidebar, showMobileMenu = false }: TopBarProps)
       <Button
         variant="ghost"
         size="icon"
-        className={showMobileMenu ? "" : "hidden lg:flex"}
+        className="flex-shrink-0"
         onClick={onToggleSidebar}
       >
         <Menu className="h-5 w-5" />
