@@ -31,6 +31,12 @@ export default function Connections() {
   const [servers, setServers] = useState(initialSftpServers);
   const [addServerDialog, setAddServerDialog] = useState(false);
   const [newServer, setNewServer] = useState({ bank: "", host: "", port: "22", remotePath: "/incoming/data" });
+  const [editServerDialog, setEditServerDialog] = useState<{ open: boolean; id: string }>({ open: false, id: "" });
+  const [editServer, setEditServer] = useState({ bank: "", host: "", port: "", remotePath: "/incoming/data" });
+  const [patterns, setPatterns] = useState(decryptionPatterns);
+  const [editPatternDialog, setEditPatternDialog] = useState<{ open: boolean; id: string }>({ open: false, id: "" });
+  const [editPattern, setEditPattern] = useState({ bank: "", pattern: "", example: "", status: "active" as "active" | "testing" });
+  const [newPattern, setNewPattern] = useState({ bank: "", patternType: "" });
 
   const handleSaveEmail = () => {
     toast({
@@ -56,6 +62,32 @@ export default function Connections() {
     
     // Clear success after 3 seconds
     setTimeout(() => setConnectionSuccess(null), 3000);
+  };
+
+  const handleEditServer = (serverId: string) => {
+    const server = servers.find((s) => s.id === serverId);
+    if (!server) return;
+    setEditServer({ bank: server.bank, host: server.host, port: String(server.port), remotePath: "/incoming/data" });
+    setEditServerDialog({ open: true, id: serverId });
+  };
+
+  const handleSaveServer = () => {
+    setServers((prev) => prev.map((s) => s.id === editServerDialog.id ? { ...s, bank: editServer.bank, host: editServer.host, port: parseInt(editServer.port) || 22 } : s));
+    setEditServerDialog({ open: false, id: "" });
+    toast({ title: "Server updated", description: `${editServer.bank} SFTP server has been updated.` });
+  };
+
+  const handleEditPattern = (patternId: string) => {
+    const p = patterns.find((x) => x.id === patternId);
+    if (!p) return;
+    setEditPattern({ bank: p.bank, pattern: p.pattern, example: p.example, status: p.status });
+    setEditPatternDialog({ open: true, id: patternId });
+  };
+
+  const handleSavePattern = () => {
+    setPatterns((prev) => prev.map((p) => p.id === editPatternDialog.id ? { ...p, ...editPattern } : p));
+    setEditPatternDialog({ open: false, id: "" });
+    toast({ title: "Pattern updated", description: `${editPattern.bank} decryption pattern has been updated.` });
   };
 
   return (
@@ -228,7 +260,7 @@ export default function Connections() {
                           {connectionSuccess === server.id ? "Success" : "Test"}
                         </span>
                       </Button>
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" onClick={() => handleEditServer(server.id)}>
                         <Settings2 className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteDialog({ open: true, id: server.id, bank: server.bank })}>
@@ -259,7 +291,7 @@ export default function Connections() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {decryptionPatterns.map((pattern) => (
+                {patterns.map((pattern) => (
                   <div
                     key={pattern.id}
                     className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg border p-4 gap-4"
@@ -291,10 +323,13 @@ export default function Connections() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 ml-auto sm:ml-0">
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" onClick={() => handleEditPattern(pattern.id)}>
                         <Settings2 className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive">
+                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => {
+                        setPatterns((prev) => prev.filter((p) => p.id !== pattern.id));
+                        toast({ title: "Pattern deleted", description: `${pattern.bank} decryption pattern has been removed.` });
+                      }}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -308,7 +343,7 @@ export default function Connections() {
                 <div className="grid gap-4 sm:grid-cols-3">
                   <div className="space-y-2">
                     <Label>Bank</Label>
-                    <Select>
+                    <Select value={newPattern.bank} onValueChange={(v) => setNewPattern((p) => ({ ...p, bank: v }))}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select bank" />
                       </SelectTrigger>
@@ -323,7 +358,7 @@ export default function Connections() {
                   </div>
                   <div className="space-y-2">
                     <Label>Pattern Type</Label>
-                    <Select>
+                    <Select value={newPattern.patternType} onValueChange={(v) => setNewPattern((p) => ({ ...p, patternType: v }))}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select pattern" />
                       </SelectTrigger>
@@ -336,7 +371,18 @@ export default function Connections() {
                     </Select>
                   </div>
                   <div className="flex items-end">
-                    <Button className="w-full">Add Pattern</Button>
+                    <Button className="w-full" disabled={!newPattern.bank || !newPattern.patternType} onClick={() => {
+                      const patternMap: Record<string, { pattern: string; example: string }> = {
+                        "agency-date": { pattern: "AgencyCode + DDMMYYYY", example: "ABC01152024" },
+                        "fixed": { pattern: "Fixed PIN", example: "BANK@2024" },
+                        "account-month": { pattern: "AccountID + Month", example: "ACC789JAN" },
+                        "custom": { pattern: "Custom Pattern", example: "CUSTOM" },
+                      };
+                      const info = patternMap[newPattern.patternType] || patternMap["custom"];
+                      setPatterns((prev) => [...prev, { id: Date.now().toString(), bank: newPattern.bank.toUpperCase(), ...info, status: "testing" as const }]);
+                      setNewPattern({ bank: "", patternType: "" });
+                      toast({ title: "Pattern added", description: `New decryption pattern has been configured.` });
+                    }}>Add Pattern</Button>
                   </div>
                 </div>
               </div>
@@ -420,6 +466,82 @@ export default function Connections() {
             >
               Add Server
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Server Dialog */}
+      <Dialog open={editServerDialog.open} onOpenChange={(open) => !open && setEditServerDialog({ open: false, id: "" })}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit SFTP Server</DialogTitle>
+            <DialogDescription>Update the SFTP connection settings.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Bank Name</Label>
+              <Input value={editServer.bank} onChange={(e) => setEditServer((p) => ({ ...p, bank: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="col-span-2 space-y-2">
+                <Label>Host</Label>
+                <Input value={editServer.host} onChange={(e) => setEditServer((p) => ({ ...p, host: e.target.value }))} className="font-mono text-sm" />
+              </div>
+              <div className="space-y-2">
+                <Label>Port</Label>
+                <Input value={editServer.port} onChange={(e) => setEditServer((p) => ({ ...p, port: e.target.value }))} className="font-mono text-sm" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5">
+                <FolderOpen className="h-3.5 w-3.5" /> Remote Folder Path
+              </Label>
+              <Input value={editServer.remotePath} onChange={(e) => setEditServer((p) => ({ ...p, remotePath: e.target.value }))} className="font-mono text-sm" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditServerDialog({ open: false, id: "" })}>Cancel</Button>
+            <Button onClick={handleSaveServer} disabled={!editServer.bank.trim() || !editServer.host.trim()}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Pattern Dialog */}
+      <Dialog open={editPatternDialog.open} onOpenChange={(open) => !open && setEditPatternDialog({ open: false, id: "" })}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Decryption Pattern</DialogTitle>
+            <DialogDescription>Update the decryption pattern for this bank.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Bank</Label>
+              <Input value={editPattern.bank} onChange={(e) => setEditPattern((p) => ({ ...p, bank: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label>Pattern</Label>
+              <Input value={editPattern.pattern} onChange={(e) => setEditPattern((p) => ({ ...p, pattern: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label>Example</Label>
+              <Input value={editPattern.example} onChange={(e) => setEditPattern((p) => ({ ...p, example: e.target.value }))} className="font-mono text-sm" />
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={editPattern.status} onValueChange={(v) => setEditPattern((p) => ({ ...p, status: v as "active" | "testing" }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="testing">Testing</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditPatternDialog({ open: false, id: "" })}>Cancel</Button>
+            <Button onClick={handleSavePattern} disabled={!editPattern.bank.trim() || !editPattern.pattern.trim()}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
