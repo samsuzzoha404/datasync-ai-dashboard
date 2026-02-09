@@ -107,6 +107,12 @@ export function AgentControls() {
             )}
           </div>
         </div>
+        {/* Heartbeat */}
+        <div className="flex items-center gap-2 pt-2 border-t text-xs text-muted-foreground">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+          <span>Last Sync: Just now</span>
+          <span className="ml-auto">Last Activity: 2 mins ago</span>
+        </div>
       </CardContent>
     </Card>
   );

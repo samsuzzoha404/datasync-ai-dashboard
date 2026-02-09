@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, Server, KeyRound, Plus, Trash2, CheckCircle2, XCircle, Settings2, Eye, EyeOff, Loader2, Wifi } from "lucide-react";
+import { Mail, Server, KeyRound, Plus, Trash2, CheckCircle2, XCircle, Settings2, Eye, EyeOff, Loader2, Wifi, FolderOpen } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { sftpServers, decryptionPatterns } from "@/lib/mockData";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { sftpServers as initialSftpServers, decryptionPatterns } from "@/lib/mockData";
 import { toast } from "@/hooks/use-toast";
 
 export default function Connections() {
@@ -26,6 +27,10 @@ export default function Connections() {
   const [showPassword, setShowPassword] = useState(false);
   const [testingConnection, setTestingConnection] = useState<string | null>(null);
   const [connectionSuccess, setConnectionSuccess] = useState<string | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; id: string; bank: string }>({ open: false, id: "", bank: "" });
+  const [servers, setServers] = useState(initialSftpServers);
+  const [addServerDialog, setAddServerDialog] = useState(false);
+  const [newServer, setNewServer] = useState({ bank: "", host: "", port: "22", remotePath: "/incoming/data" });
 
   const handleSaveEmail = () => {
     toast({
@@ -164,14 +169,14 @@ export default function Connections() {
                   Manage your SFTP connections to bank servers.
                 </CardDescription>
               </div>
-              <Button size="sm" className="gap-2 w-full sm:w-auto">
+              <Button size="sm" className="gap-2 w-full sm:w-auto" onClick={() => setAddServerDialog(true)}>
                 <Plus className="h-4 w-4" />
                 Add Server
               </Button>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {sftpServers.map((server) => (
+                {servers.map((server) => (
                   <div
                     key={server.id}
                     className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg border p-4 gap-4"
@@ -226,7 +231,7 @@ export default function Connections() {
                       <Button variant="ghost" size="icon">
                         <Settings2 className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive">
+                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteDialog({ open: true, id: server.id, bank: server.bank })}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -339,6 +344,85 @@ export default function Connections() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, id: "", bank: "" })}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete Connection</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the <strong>{deleteDialog.bank}</strong> SFTP connection? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setDeleteDialog({ open: false, id: "", bank: "" })}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setServers((prev) => prev.filter((s) => s.id !== deleteDialog.id));
+                setDeleteDialog({ open: false, id: "", bank: "" });
+                toast({ title: "Connection deleted", description: `${deleteDialog.bank} server has been removed.` });
+              }}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Server Dialog */}
+      <Dialog open={addServerDialog} onOpenChange={setAddServerDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add SFTP Server</DialogTitle>
+            <DialogDescription>Configure a new SFTP connection to a bank server.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Bank Name</Label>
+              <Input value={newServer.bank} onChange={(e) => setNewServer((p) => ({ ...p, bank: e.target.value }))} placeholder="e.g. Public Bank" />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="col-span-2 space-y-2">
+                <Label>Host</Label>
+                <Input value={newServer.host} onChange={(e) => setNewServer((p) => ({ ...p, host: e.target.value }))} placeholder="sftp.bank.com.my" className="font-mono text-sm" />
+              </div>
+              <div className="space-y-2">
+                <Label>Port</Label>
+                <Input value={newServer.port} onChange={(e) => setNewServer((p) => ({ ...p, port: e.target.value }))} placeholder="22" className="font-mono text-sm" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5">
+                <FolderOpen className="h-3.5 w-3.5" /> Remote Folder Path <span className="text-error">*</span>
+              </Label>
+              <Input value={newServer.remotePath} onChange={(e) => setNewServer((p) => ({ ...p, remotePath: e.target.value }))} placeholder="/incoming/data" className="font-mono text-sm" />
+              <p className="text-xs text-muted-foreground">The directory on the remote server where files are uploaded.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddServerDialog(false)}>Cancel</Button>
+            <Button
+              disabled={!newServer.bank.trim() || !newServer.host.trim() || !newServer.remotePath.trim()}
+              onClick={() => {
+                setServers((prev) => [...prev, {
+                  id: Date.now().toString(),
+                  bank: newServer.bank,
+                  host: newServer.host,
+                  port: parseInt(newServer.port) || 22,
+                  status: "disconnected" as const,
+                  lastSync: "Never",
+                }]);
+                setNewServer({ bank: "", host: "", port: "22", remotePath: "/incoming/data" });
+                setAddServerDialog(false);
+                toast({ title: "Server added", description: `${newServer.bank} SFTP server has been configured.` });
+              }}
+            >
+              Add Server
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
