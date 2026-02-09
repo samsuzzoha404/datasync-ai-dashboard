@@ -203,12 +203,12 @@ export default function Settings() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Flow Legend */}
-              <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-5 py-3">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 rounded-lg border bg-muted/30 px-4 sm:px-5 py-3">
                 <div className="flex items-center gap-2.5">
                   <div className="h-2.5 w-2.5 rounded-full bg-muted-foreground/40" />
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Source Column</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="hidden sm:flex items-center gap-2">
                   <div className="h-px w-10 bg-muted-foreground/20" />
                   <MoveRight className="h-3.5 w-3.5 text-primary/60" />
                   <span className="text-xs text-muted-foreground font-medium">AI Mapping</span>
@@ -226,36 +226,39 @@ export default function Settings() {
                 {mappings.map((mapping, index) => (
                   <div
                     key={index}
-                    className="group relative flex items-center gap-4 rounded-lg border p-4 sm:p-5 hover:bg-accent/40 transition-all duration-150"
+                    className="group relative flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 rounded-lg border p-4 sm:p-5 hover:bg-accent/40 transition-all duration-150"
                   >
-                    {/* Source */}
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="h-2 w-2 rounded-full bg-muted-foreground/40 shrink-0" />
-                      <div className="rounded-md bg-muted px-3 py-2 font-mono text-sm border border-border truncate">
-                        {mapping.input}
+                    {/* Source → Target row */}
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      {/* Source */}
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <div className="h-2 w-2 rounded-full bg-muted-foreground/40 shrink-0" />
+                        <div className="rounded-md bg-muted px-3 py-2 font-mono text-sm border border-border truncate">
+                          {mapping.input}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Arrow */}
-                    <div className="flex items-center gap-1.5 shrink-0 px-1">
-                      <div className="hidden sm:block h-px w-6 bg-gradient-to-r from-muted-foreground/30 to-primary/40" />
-                      <div className="flex items-center justify-center h-7 w-7 rounded-full bg-primary/10 border border-primary/20">
-                        <MoveRight className="h-3.5 w-3.5 text-primary" />
+                      {/* Arrow */}
+                      <div className="flex items-center gap-1.5 shrink-0 px-1">
+                        <div className="hidden sm:block h-px w-4 bg-gradient-to-r from-muted-foreground/30 to-primary/40" />
+                        <div className="flex items-center justify-center h-7 w-7 rounded-full bg-primary/10 border border-primary/20">
+                          <MoveRight className="h-3.5 w-3.5 text-primary" />
+                        </div>
+                        <div className="hidden sm:block h-px w-4 bg-gradient-to-l from-muted-foreground/30 to-primary/40" />
                       </div>
-                      <div className="hidden sm:block h-px w-6 bg-gradient-to-l from-muted-foreground/30 to-primary/40" />
-                    </div>
 
-                    {/* Target */}
-                    <div className="flex items-center gap-3 min-w-0 flex-1 justify-end">
-                      <div className="rounded-md bg-primary/10 text-primary px-3 py-2 font-mono text-sm border border-primary/25 truncate">
-                        {mapping.output}
+                      {/* Target */}
+                      <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
+                        <div className="rounded-md bg-primary/10 text-primary px-3 py-2 font-mono text-sm border border-primary/25 truncate">
+                          {mapping.output}
+                        </div>
+                        <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
                       </div>
-                      <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
                     </div>
 
                     {/* Meta & Actions */}
-                    <div className="flex items-center gap-3 ml-2 shrink-0">
-                      <div className="hidden md:flex flex-col items-end gap-1 w-24">
+                    <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0">
+                      <div className="flex flex-col items-start sm:items-end gap-1 w-24">
                         <div className="flex items-center justify-between w-full">
                           <span className="text-[10px] text-muted-foreground">Confidence</span>
                           <span className="text-xs font-semibold font-mono">{mapping.confidence}%</span>
@@ -265,7 +268,7 @@ export default function Settings() {
                       <Badge
                         variant="outline"
                         className={cn(
-                          "hidden sm:inline-flex text-[10px] px-2 py-0.5",
+                          "text-[10px] px-2 py-0.5",
                           mapping.confidence >= 95
                             ? "bg-success/10 text-success border-success/30"
                             : "bg-warning/10 text-warning border-warning/30"
@@ -280,7 +283,7 @@ export default function Settings() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="h-9 w-9 sm:h-8 sm:w-8 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                           onClick={() => setEditDialog({ open: true, index, input: mapping.input, output: mapping.output })}
                         >
                           <Pencil className="h-3.5 w-3.5" />
@@ -288,7 +291,7 @@ export default function Settings() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                          className="h-9 w-9 sm:h-8 sm:w-8 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
                           onClick={() => handleDeleteMapping(index)}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
